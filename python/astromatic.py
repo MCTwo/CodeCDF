@@ -159,7 +159,7 @@ def make_fits_cat(fitsfile, outcat='tmp.cat', configfile='sext_astfile.config',
    if len(fitsfile) == 2:
       if logfile is None:
          try:
-            os.system('sex {0} {1} -c {2} {3}'.format(detectfile,photfile,
+            os.system('sex {0},{1} -c {2} {3}'.format(detectfile,photfile,
                                                       configfile,sopts))
          except:
             print ""
@@ -168,7 +168,7 @@ def make_fits_cat(fitsfile, outcat='tmp.cat', configfile='sext_astfile.config',
             return
       else:
          try:
-            os.system('sex {0} {1} -c {2} {3} > {4}'.format(detectfile,
+            os.system('sex {0},{1} -c {2} {3} > {4}'.format(detectfile,
                                                             photfile,
                                                             configfile,sopts,
                                                             logfile))            
