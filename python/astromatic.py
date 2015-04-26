@@ -80,7 +80,9 @@ def make_fits_cat(fitsfile, outcat='tmp.cat', configfile='sext_astfile.config',
    will be applied to.
 
    Inputs:
-      fitsfile   -  input fits file
+      fitsfile   -  input fits file, [OPTIONAL] to have a list of two files
+                    where the first is the detection fits file and the second
+                    is the photometric file.
       configfile -  input SExtractor configuration file.  Note that the
                     gain parameter in this file will be overridden based
                     on the values of the gain, texp, and ncoadd parameters
@@ -136,6 +138,13 @@ def make_fits_cat(fitsfile, outcat='tmp.cat', configfile='sext_astfile.config',
    if verbose is False:
       sopts += '-VERBOSE_TYPE QUIET '
 
+   # Determine if separate detection and photometry images have been input
+   if len(fitsfile) == 2:
+      detectfile = fitsfile[0]
+      photfile = fitsfile[1]
+   else:
+      photfile = fitsfile
+
    """ Run SExtractor """
    if verbose:
       print ""
@@ -144,23 +153,46 @@ def make_fits_cat(fitsfile, outcat='tmp.cat', configfile='sext_astfile.config',
       print "Override variables:"
       print sopts
       print ""
-   if logfile is None:
-      try:
-         os.system('sex -c %s %s %s' % (configfile,fitsfile,sopts))
-      except:
-         print ""
-         print "ERROR.  Could not run SExtractor on %s" % fitsfile
-         print ""
-         return
-   else:
-      try:
-         os.system('sex -c %s %s %s > %s' % \
-                      (configfile,fitsfile,sopts,logfile))
-      except:
-         print ""
-         print "ERROR.  Could not run SExtractor on %s" % fitsfile
-         print ""
-         return
+   if len(fitsfile) == 1:
+      if logfile is None:
+         try:
+            os.system('sex -c %s %s %s' % (configfile,fitsfile,sopts))
+         except:
+            print ""
+            print "ERROR.  Could not run SExtractor on %s" % fitsfile
+            print ""
+            return
+      else:
+         try:
+            os.system('sex -c %s %s %s > %s' % \
+                         (configfile,fitsfile,sopts,logfile))
+         except:
+            print ""
+            print "ERROR.  Could not run SExtractor on %s" % fitsfile
+            print ""
+            return
+   elif len(fitsfile) == 2:
+      if logfile is None:
+         try:
+            os.system('sex {0} {1} -c {2} {3}'.format(fitsfile[0],fitsfile[1],
+                                                      configfile,sopts))
+         except:
+            print ""
+            print "ERROR.  Could not run SExtractor on %s" % fitsfile
+            print ""
+            return
+      else:
+         try:
+            os.system('sex {0} {1} -c {2} {3} > {4}'.format(fitsfile[0],
+                                                            fitsfile[1],
+                                                            configfile,sopts,
+                                                            logfile))            
+         except:
+            print ""
+            print "ERROR.  Could not run SExtractor on %s" % fitsfile
+            print ""
+            return
+         
    if verbose:
       print ""
       print "Ran SExtractor on %s to produce output catalog %s" % \
@@ -576,9 +608,13 @@ def make_cat_suprimecam(fitsfile, outcat='tmp.cat', regfile=None,
 
    Note that readnoise for the SuprimeCam chips is 10 e-
    """
+   if len(fitsfile) == 2:
+      scifile = fitsfile[1]
+   else:
+      scifile = fitsfile
 
    """ Get gain and exposure time from header """
-   hdr = pf.getheader(fitsfile)
+   hdr = pf.getheader(scifile)
    try:
       gain = hdr['gain']
    except:
@@ -589,7 +625,7 @@ def make_cat_suprimecam(fitsfile, outcat='tmp.cat', regfile=None,
       texp = 1.0
    if verbose:
       print ""
-      print "File: %s has gain=%6.3f and t_exp = %7.1f" % (fitsfile,gain,texp)
+      print "File: %s has gain=%6.3f and t_exp = %7.1f" % (scifile,gain,texp)
 
 
    make_fits_cat(fitsfile,outcat,configfile,gain,texp,ncoadd,satur,zeropt,
