@@ -146,14 +146,38 @@ def make_fits_cat(fitsfile, outcat='tmp.cat', configfile='sext_astfile.config',
       photfile = fitsfile
 
    """ Run SExtractor """
+   print "length of fitsfile = {0}".format(len(fitsfile))
    if verbose:
       print ""
-      print "Running SExtractor on %s" % fitsfile
+      print "Running SExtractor on %s" % photfile
+      if len(fitsfile) == 2:
+         print "with {0} as the detection file".format(detectfile)
       print "Configuration file: %s" % configfile
       print "Override variables:"
       print sopts
       print ""
-   if len(fitsfile) == 1:
+   if len(fitsfile) == 2:
+      if logfile is None:
+         try:
+            os.system('sex {0} {1} -c {2} {3}'.format(detectfile,photfile,
+                                                      configfile,sopts))
+         except:
+            print ""
+            print "ERROR.  Could not run SExtractor on %s" % fitsfile
+            print ""
+            return
+      else:
+         try:
+            os.system('sex {0} {1} -c {2} {3} > {4}'.format(detectfile,
+                                                            photfile,
+                                                            configfile,sopts,
+                                                            logfile))            
+         except:
+            print ""
+            print "ERROR.  Could not run SExtractor on %s" % fitsfile
+            print ""
+            return
+   else:
       if logfile is None:
          try:
             os.system('sex -c %s %s %s' % (configfile,fitsfile,sopts))
@@ -165,33 +189,13 @@ def make_fits_cat(fitsfile, outcat='tmp.cat', configfile='sext_astfile.config',
       else:
          try:
             os.system('sex -c %s %s %s > %s' % \
-                         (configfile,fitsfile,sopts,logfile))
+                      (configfile,fitsfile,sopts,logfile))
          except:
             print ""
             print "ERROR.  Could not run SExtractor on %s" % fitsfile
             print ""
             return
-   elif len(fitsfile) == 2:
-      if logfile is None:
-         try:
-            os.system('sex {0} {1} -c {2} {3}'.format(fitsfile[0],fitsfile[1],
-                                                      configfile,sopts))
-         except:
-            print ""
-            print "ERROR.  Could not run SExtractor on %s" % fitsfile
-            print ""
-            return
-      else:
-         try:
-            os.system('sex {0} {1} -c {2} {3} > {4}'.format(fitsfile[0],
-                                                            fitsfile[1],
-                                                            configfile,sopts,
-                                                            logfile))            
-         except:
-            print ""
-            print "ERROR.  Could not run SExtractor on %s" % fitsfile
-            print ""
-            return
+   
          
    if verbose:
       print ""
